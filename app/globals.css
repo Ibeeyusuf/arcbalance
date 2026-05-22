@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg: #080810;
+  --surface: #0f0f1a;
+  --surface-2: #161625;
+  --border: #1e1e32;
+  --border-bright: #2e2e4e;
+  --usdc: #2775CA;
+  --usyc: #10B981;
+  --bull: #22c55e;
+  --bear: #ef4444;
+  --sideways: #f59e0b;
+  --volatile: #8b5cf6;
+  --text: #dde1f0;
+  --dim: #5a6080;
+  --font-mono: 'Space Mono', monospace;
+  --font-display: 'Syne', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* Scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.04) 2px,
+    rgba(0, 0, 0, 0.04) 4px
+  );
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* Subtle grid background */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(39, 117, 202, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(39, 117, 202, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.font-display { font-family: var(--font-display); }
+.font-mono { font-family: var(--font-mono); }
+
+/* Arc USDC glow */
+.glow-usdc { box-shadow: 0 0 20px rgba(39, 117, 202, 0.15); }
+.glow-bull { box-shadow: 0 0 20px rgba(34, 197, 94, 0.15); }
+.glow-bear { box-shadow: 0 0 20px rgba(239, 68, 68, 0.15); }
+
+/* Terminal cursor blink */
+.cursor::after {
+  content: '█';
+  animation: blink 1s step-end infinite;
+  color: var(--usdc);
+  font-size: 0.8em;
+  margin-left: 2px;
+}
+@keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
