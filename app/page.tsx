@@ -352,7 +352,7 @@ export default function Home() {
                 <h2 className="font-display font-bold text-white">Agent Reasoning Trace</h2>
                 <span className="text-xs px-2 py-0.5 rounded"
                   style={{ background: 'var(--usdc)22', color: 'var(--usdc)', border: '1px solid var(--usdc)44' }}>
-                  claude-sonnet-4
+                  
                 </span>
                 <span className="text-xs text-[var(--dim)]">{new Date(d.timestamp).toLocaleString()}</span>
               </div>
@@ -418,7 +418,7 @@ export default function Home() {
         {/* ── Footer ── */}
         <footer className="text-center text-xs text-[var(--dim)] pb-8 space-y-1">
           <p>ArcBalance · Built for Agora Agents Hackathon by Canteen × Circle × Arc</p>
-          <p>USDC-native settlement · ~$0.01/tx · Sub-second finality on Arc Testnet</p>
+          {/* <p>USDC-native settlement · ~$0.01/tx · Sub-second finality on Arc Testnet</p> */}
           <div className="flex items-center justify-center gap-4 mt-2">
             <a href="https://arc.network" target="_blank" className="hover:text-[var(--usdc)] transition-colors">Arc ↗</a>
             <a href="https://developers.circle.com" target="_blank" className="hover:text-[var(--usdc)] transition-colors">Circle Docs ↗</a>

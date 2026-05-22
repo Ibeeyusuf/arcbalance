@@ -5,17 +5,17 @@
 @tailwind utilities;
 
 :root {
-  --bg: #080810;
-  --surface: #0f0f1a;
+  --bg: #000000;
+  --surface: #0f0f1a94;
   --surface-2: #161625;
-  --border: #1e1e32;
+  --border: #1e1e32a1;
   --border-bright: #2e2e4e;
   --usdc: #2775CA;
-  --usyc: #10B981;
-  --bull: #22c55e;
-  --bear: #ef4444;
+  --usyc: #10b981b3;
+  --bull: #22c55ec0;
+  --bear: #ef44449c;
   --sideways: #f59e0b;
-  --volatile: #8b5cf6;
+  --volatile: #8a5cf69e;
   --text: #dde1f0;
   --dim: #5a6080;
   --font-mono: 'Space Mono', monospace;

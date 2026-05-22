@@ -3,35 +3,26 @@ import { fetchMarketData, computeSignals } from '@/lib/prices'
 import { REGIME_ALLOCATIONS, type Regime, type RebalanceDecision } from '@/lib/portfolio'
 import { getBlockNumber } from '@/lib/arc-client'
 
-async function callAI(prompt: string, retries = 3): Promise<string> {
-  for (let i = 0; i < retries; i++) {
-    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        'HTTP-Referer': 'https://arcbalance.vercel.app',
-        'X-Title': 'ArcBalance',
-      },
-      body: JSON.stringify({
-        model: 'meta-llama/llama-3.3-70b-instruct:free',
-        messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
-        max_tokens: 1500,
-      }),
-    })
-    if (res.ok) {
-      const data = await res.json()
-      return data.choices?.[0]?.message?.content ?? ''
-    }
-    if (res.status === 429 && i < retries - 1) {
-      await new Promise(r => setTimeout(r, 30000))
-      continue
-    }
+async function callAI(prompt: string): Promise<string> {
+  const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: 'llama-3.3-70b-versatile',
+      messages: [{ role: 'user', content: prompt }],
+      temperature: 0.3,
+      max_tokens: 1500,
+    }),
+  })
+  if (!res.ok) {
     const err = await res.text()
-    throw new Error(`OpenRouter error ${res.status}: ${err}`)
+    throw new Error(`Groq error ${res.status}: ${err}`)
   }
-  throw new Error('Max retries exceeded')
+  const data = await res.json()
+  return data.choices?.[0]?.message?.content ?? ''
 }
 
 export async function POST(req: NextRequest) {
@@ -39,17 +30,14 @@ export async function POST(req: NextRequest) {
     const body = await req.json().catch(() => ({}))
     const portfolioUsd: number = body.portfolioUsd ?? 10000
 
-    // 1. Fetch live market data
     const snapshot = await fetchMarketData()
     const signals = computeSignals(snapshot.prices)
 
-    // 2. Get current Arc block number (proves we're live on-chain)
     let blockNumber = 'unknown'
     try {
       blockNumber = (await getBlockNumber()).toString()
     } catch { /* testnet may be down */ }
 
-    // 3. Ask AI to detect regime and reason through allocations
     const prompt = `You are ArcBalance, an autonomous AI portfolio manager running on Arc blockchain (a USDC-native L1 by Circle). You analyze real-time market signals and decide optimal portfolio allocations.
 
 ## Current Market Snapshot
@@ -77,15 +65,13 @@ USYC is a tokenized money market fund on Arc. It earns yield on idle capital. Yo
 1. Detect the current market regime: BULL, BEAR, SIDEWAYS, or HIGH_VOLATILITY
 2. State your confidence (0.0-1.0)
 3. Recommend target allocations for: BTC, ETH, SOL, LINK, USYC (must sum to 100)
-4. Write a detailed reasoning trace explaining your logic, referencing exact price data
+4. Write a detailed reasoning trace referencing exact price data
 5. List 3 key insights and 2 risk factors
 
-You MUST respond ONLY with valid JSON. No markdown fences, no explanation outside JSON:
-{"regime":"BULL","regimeConfidence":0.8,"reasoning":"your full reasoning here","allocations":{"BTC":35,"ETH":30,"SOL":20,"LINK":10,"USYC":5},"keyInsights":["insight 1","insight 2","insight 3"],"riskFactors":["risk 1","risk 2"]}`
+Respond ONLY with valid JSON, no markdown fences:
+{"regime":"BULL","regimeConfidence":0.8,"reasoning":"full reasoning here","allocations":{"BTC":35,"ETH":30,"SOL":20,"LINK":10,"USYC":5},"keyInsights":["insight 1","insight 2","insight 3"],"riskFactors":["risk 1","risk 2"]}`
 
     const rawText = await callAI(prompt)
-
-    // Strip markdown fences if model adds them anyway
     const cleaned = rawText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
 
     let aiResponse: {
@@ -110,7 +96,6 @@ You MUST respond ONLY with valid JSON. No markdown fences, no explanation outsid
       }
     }
 
-    // 4. Compute current vs target allocations and trades needed
     const regime = aiResponse.regime
     const targetAllocs = aiResponse.allocations
     const totalPct = Object.values(targetAllocs).reduce((a, b) => a + b, 0)
