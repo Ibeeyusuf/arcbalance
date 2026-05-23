@@ -1,6 +1,6 @@
 {
   "name": "arcbalance",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -13,6 +13,7 @@
     "react": "^18",
     "react-dom": "^18",
     "viem": "^2.13.0",
+    "@supabase/supabase-js": "^2.43.0",
     "recharts": "^2.12.7",
     "clsx": "^2.1.1",
     "lucide-react": "^0.383.0"
