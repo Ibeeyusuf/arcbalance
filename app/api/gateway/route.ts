@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getAgentAccount, getUsdcBalance, getUsycBalance, publicClient, CONTRACTS } from '@/lib/arc-client'
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAgentAccount, getUsdcBalance, publicClient, CONTRACTS, ERC20_ABI } from '@/lib/arc-client'
 import { createWalletClient, http } from 'viem'
 import { arcTestnet } from '@/lib/arc-client'
+export const dynamic = 'force-dynamic'
 
 // CCTP V2 ABI - TokenMessengerV2 on Arc Testnet
 const CCTP_MESSENGER_ABI = [

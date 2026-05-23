@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
+export const dynamic = 'force-dynamic'
 
 const DEFAULT_POSITIONS = [
   { symbol: 'BTC', cost_basis: 95000, quantity: 0.05, purchase_date: '2025-10-15' },

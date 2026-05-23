@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getWalletClient, getAgentAccount, getUsdcBalance, getUsycBalance, publicClient, CONTRACTS, ERC20_ABI, toUsdc } from '@/lib/arc-client'
+export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   try {
