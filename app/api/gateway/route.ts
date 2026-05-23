@@ -1,24 +1,21 @@
 import { NextResponse } from 'next/server'
 import { getAgentAccount, getUsdcBalance, getUsycBalance, publicClient, CONTRACTS } from '@/lib/arc-client'
+
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
     const account = getAgentAccount()
-
-    // Real on-chain balance reads
     const [usdcBalance, usycBalance, blockNumber] = await Promise.all([
       getUsdcBalance(account.address),
       getUsycBalance(account.address),
       publicClient.getBlockNumber(),
     ])
 
-    const totalUnified = usdcBalance + usycBalance
-
     return NextResponse.json({
       success: true,
       agentAddress: account.address,
-      unifiedBalance: totalUnified,
+      unifiedBalance: usdcBalance + usycBalance,
       blockNumber: blockNumber.toString(),
       chains: [
         {
@@ -47,7 +44,7 @@ export async function GET() {
           chainId: 11155111,
           usdcBalance: 0,
           isLive: false,
-          note: 'Transfer via CCTP — burns on source, mints on Arc',
+          note: 'Transfer via CCTP — burns on Arc, mints on destination',
         },
       ],
     })

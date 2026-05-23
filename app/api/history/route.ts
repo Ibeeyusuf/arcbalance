@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
+
 export const dynamic = 'force-dynamic'
 
 export async function GET() {
   try {
+    const supabase = getSupabase()
     const { data: rebalances, error } = await supabase
       .from('rebalances')
       .select('*')
@@ -12,7 +14,6 @@ export async function GET() {
 
     if (error) throw error
 
-    // Calculate metrics
     const total = rebalances?.length ?? 0
     const regimeCounts: Record<string, number> = {}
     let totalTrades = 0
@@ -22,7 +23,6 @@ export async function GET() {
       totalTrades += r.trades_executed
     }
 
-    // BTC benchmark return
     let btcBenchmarkReturn = 0
     if ((rebalances?.length ?? 0) >= 2) {
       const first = rebalances![rebalances!.length - 1].btc_price
@@ -51,6 +51,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = getSupabase()
     const body = await req.json()
 
     const { error } = await supabase.from('rebalances').insert({
@@ -65,7 +66,6 @@ export async function POST(req: NextRequest) {
     })
 
     if (error) throw error
-
     return NextResponse.json({ success: true })
   } catch (err) {
     return NextResponse.json({ success: false, error: String(err) }, { status: 500 })

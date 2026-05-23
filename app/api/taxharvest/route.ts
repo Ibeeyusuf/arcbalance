@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
+
 export const dynamic = 'force-dynamic'
 
 const DEFAULT_POSITIONS = [
@@ -15,10 +16,10 @@ const COINGECKO_IDS: Record<string, string> = {
 
 export async function GET() {
   try {
-    // 1. Load positions from Supabase
+    const supabase = getSupabase()
+
     let { data: positions } = await supabase.from('positions').select('*')
 
-    // Seed defaults if empty
     if (!positions || positions.length === 0) {
       const { data: seeded } = await supabase
         .from('positions')
@@ -27,7 +28,6 @@ export async function GET() {
       positions = seeded
     }
 
-    // 2. Fetch live prices
     const ids = (positions ?? []).map(p => COINGECKO_IDS[p.symbol]).filter(Boolean).join(',')
     const priceRes = await fetch(
       `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${ids}`,
@@ -37,7 +37,6 @@ export async function GET() {
     const priceMap: Record<string, number> = {}
     for (const p of priceData) priceMap[p.symbol.toUpperCase()] = p.current_price
 
-    // 3. Calculate real PnL
     const TAX_RATE = 0.30
     const enriched = (positions ?? []).map(p => {
       const currentPrice = priceMap[p.symbol] ?? p.cost_basis
@@ -46,7 +45,6 @@ export async function GET() {
       return { ...p, currentPrice, unrealizedPnl, unrealizedPnlPct }
     })
 
-    // 4. Find harvest opportunities (> 5% loss)
     const opportunities = enriched
       .filter(p => p.unrealizedPnlPct < -5)
       .map(p => ({
@@ -76,7 +74,6 @@ export async function GET() {
         harvestableOpportunities: opportunities.length,
       }
     })
-
   } catch (err) {
     return NextResponse.json({ success: false, error: String(err) }, { status: 500 })
   }
@@ -84,9 +81,9 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const supabase = getSupabase()
     const { symbol, newCostBasis } = await req.json()
 
-    // Update position cost basis in Supabase (harvested = reset to current price)
     const { error } = await supabase
       .from('positions')
       .update({
@@ -97,18 +94,6 @@ export async function POST(req: NextRequest) {
       .eq('symbol', symbol)
 
     if (error) throw error
-
-    // Log harvest to rebalances table
-    await supabase.from('rebalances').insert({
-      regime: 'TAX_HARVEST',
-      regime_confidence: 1.0,
-      portfolio_usd: 0,
-      trades_executed: 1,
-      tx_hashes: [],
-      btc_price: 0,
-      block_number: 'tax-harvest',
-      allocations: { harvested: symbol },
-    })
 
     return NextResponse.json({
       success: true,
