@@ -1,8 +1,9 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { fetchMarketData, computeSignals } from '@/lib/prices'
 import { REGIME_ALLOCATIONS, type Regime, type RebalanceDecision } from '@/lib/portfolio'
 import { getBlockNumber } from '@/lib/arc-client'
-export const dynamic = 'force-dynamic'
 
 async function callAI(prompt: string): Promise<string> {
   const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {

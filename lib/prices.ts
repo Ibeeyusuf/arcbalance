@@ -19,7 +19,6 @@ export interface MarketSnapshot {
   btcDominance?: number
 }
 
-// Assets tracked in the portfolio
 export const PORTFOLIO_ASSETS: AssetId[] = ['bitcoin', 'ethereum', 'solana', 'chainlink']
 
 export async function fetchMarketData(): Promise<MarketSnapshot> {
@@ -28,16 +27,15 @@ export async function fetchMarketData(): Promise<MarketSnapshot> {
 
   const res = await fetch(url, {
     headers: { Accept: 'application/json' },
-    next: { revalidate: 60 }, // cache 60s in Next.js
+    cache: 'no-store',
   })
 
   if (!res.ok) throw new Error(`CoinGecko error: ${res.status}`)
   const data: PriceData[] = await res.json()
 
-  // Fetch BTC dominance from global endpoint
   let btcDominance: number | undefined
   try {
-    const globalRes = await fetch('https://api.coingecko.com/api/v3/global')
+    const globalRes = await fetch('https://api.coingecko.com/api/v3/global', { cache: 'no-store' })
     const globalData = await globalRes.json()
     btcDominance = globalData?.data?.market_cap_percentage?.btc
   } catch { /* non-fatal */ }
@@ -45,7 +43,6 @@ export async function fetchMarketData(): Promise<MarketSnapshot> {
   return { prices: data, fetchedAt: new Date().toISOString(), btcDominance }
 }
 
-// Derive simple momentum signals per asset
 export function computeSignals(prices: PriceData[]) {
   return prices.map(p => ({
     id: p.id,
